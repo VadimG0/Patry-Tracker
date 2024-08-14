@@ -4,9 +4,10 @@ import {
     Stack,
     Typography,
     Button,
-    Modal,
     TextField,
+    InputAdornment,
 } from "@mui/material";
+import SearchIcon from "@mui/icons-material/Search";
 import { firestore } from "@/app/firebase";
 import {
     collection,
@@ -19,27 +20,29 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
-const style = {
+const popupStyle = {
     position: "absolute",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: 400,
     bgcolor: "background.paper",
-    border: "2px solid #000",
+    border: "1px solid #EEE",
     boxShadow: 24,
     p: 4,
     display: "flex",
     flexDirection: "column",
     gap: 2,
+    borderRadius: "15px",
+    color: "#EEE",
+    bgcolor: "#222",
 };
+
+const textFieldStyle = {};
 
 export default function Home() {
     const [pantry, setPantry] = useState([]);
-    const [open, setOpen] = useState(false);
     const [itemName, setItemName] = useState("");
-    const handleOpen = () => setOpen(true);
-    const handleClose = () => setOpen(false);
 
     const updatePantry = async () => {
         try {
@@ -94,95 +97,151 @@ export default function Home() {
             justifyContent={"center"}
             alignItems={"center"}
             flexDirection={"column"}
-            gap={2}>
-            <Button variant="contained" onClick={handleOpen}>
-                Add Item
-            </Button>
-            <Modal
-                open={open}
-                onClose={handleClose}
-                aria-labelledby="modal-modal-title"
-                aria-describedby="modal-modal-description">
-                <Box sx={style}>
-                    <Typography
-                        id="modal-modal-title"
-                        variant="h6"
-                        component="h2">
-                        Add Item
-                    </Typography>
-                    <Stack direction={"row"} spacing={2}>
-                        <TextField
-                            id="outline-basic"
-                            label="Item"
-                            variant="outlined"
-                            fullWidth
-                            value={itemName}
-                            onChange={(e) => setItemName(e.target.value)}
-                        />
-                        <Button
-                            variant="contained"
-                            onClick={() => {
-                                addItem(itemName);
-                                setItemName("");
-                                handleClose();
-                            }}>
-                            Add
-                        </Button>
-                    </Stack>
-                </Box>
-            </Modal>
-            <Box border={"1px solid #333"}>
+            gap={2}
+            bgcolor={"#222"}>
+            <Box
+                width="800px"
+                height="100px"
+                bgcolor={"#AD974F"}
+                display={"flex"}
+                justifyContent={"center"}
+                alignItems={"center"}
+                borderRadius={"15px"}>
+                <Typography variant={"h2"} color={"#EEE"} textAlign={"center"}>
+                    Pantry Items
+                </Typography>
+            </Box>
+            <Box
+                border={"1px solid #EEE"}
+                borderRadius={"15px"}
+                overflow={"hidden"}>
                 <Box
-                    width="800px"
-                    height="100px"
-                    bgcolor={"#333"}
                     display={"flex"}
+                    alignItems={"center"}
                     justifyContent={"center"}
-                    alignItems={"center"}>
-                    <Typography
-                        variant={"h2"}
-                        color={"#EEE"}
-                        textAlign={"center"}>
-                        Pantry Items
-                    </Typography>
+                    bgcolor={"#EEE"}
+                    paddingTop={2}>
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                        <SearchIcon sx={{ color: "#222", mr: 1, my: 0.5 }} />
+                        <TextField
+                            id="input-with-sx"
+                            variant="outlined"
+                            size="small"
+                            placeholder="Search"
+                        />
+                    </Box>
                 </Box>
                 <Stack
                     width="800px"
                     height="400px"
                     spacing={2}
-                    overflow={"auto"}>
+                    overflow={"auto"}
+                    bgcolor={"#EEE"}
+                    py={3}
+                    pl={3}
+                    sx={{
+                        "&::-webkit-scrollbar": {
+                            width: "24px",
+                        },
+                        "&::-webkit-scrollbar-track": {
+                            background: "#EEE",
+                            padding: "10px",
+                        },
+                        "&::-webkit-scrollbar-thumb": {
+                            background: "#222",
+                            borderRadius: "15px",
+                            border: "7px solid transparent",
+                            backgroundClip: "content-box",
+                        },
+                    }}>
                     {pantry.map(({ name, quantity }) => (
                         <Box
                             key={name}
                             width="100%"
-                            minHeight="150px"
+                            minHeight="120px"
                             display={"flex"}
                             justifyContent={"space-between"}
                             alignItems={"center"}
                             paddingX={7}
-                            bgcolor={"#f0f0f0"}>
+                            bgcolor={"#222"}
+                            borderRadius={"15px"}>
                             <Typography
-                                variant={"h3"}
-                                color={"#333"}
+                                variant={"h5"}
+                                color={"#EEE"}
                                 textAlign={"center"}>
                                 {name.charAt(0).toUpperCase() + name.slice(1)}
                             </Typography>
-                            <Typography
-                                variant={"h3"}
-                                color={"#333"}
-                                textAlign={"center"}>
-                                Quantity: {quantity}
-                            </Typography>
-                            <Button
-                                variant="contained"
-                                onClick={() => {
-                                    removeItem(name);
-                                }}>
-                                Remove
-                            </Button>
+                            <Box
+                                display={"flex"}
+                                flexDirection={"column"}
+                                alignItems={"center"}
+                                gap={2}>
+                                <Button
+                                    variant="contained"
+                                    sx={{
+                                        whiteSpace: "nowrap",
+                                        bgcolor: "#EEE",
+                                        color: "#222",
+                                        "&:hover": {
+                                            bgcolor: "#AD974F",
+                                            color: "#EEE",
+                                        },
+                                    }}
+                                    onClick={() => {
+                                        removeItem(name);
+                                    }}>
+                                    Remove
+                                </Button>
+                                <Typography
+                                    variant={"h7"}
+                                    color={"#EEE"}
+                                    textAlign={"center"}>
+                                    Quantity: {quantity}
+                                </Typography>
+                            </Box>
                         </Box>
                     ))}
                 </Stack>
+            </Box>
+            <Box display={"flex"} gap={3} width={"600px"}>
+                <TextField
+                    id="outline-basic"
+                    label="Item"
+                    variant="outlined"
+                    fullWidth
+                    size="small"
+                    sx={{
+                        "& .MuiOutlinedInput-root": {
+                            color: "#EEE",
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "#EEE",
+                            },
+                        },
+                        "& .MuiInputLabel-outlined": {
+                            color: "#EEE",
+                        },
+                    }}
+                    value={itemName}
+                    onChange={(e) => setItemName(e.target.value)}
+                />
+                <Button
+                    variant="contained"
+                    sx={{
+                        whiteSpace: "nowrap",
+                        bgcolor: "#AD974F",
+                        color: "#EEE",
+                        "&:hover": {
+                            bgcolor: "#EEE",
+                            color: "#AD974F",
+                        },
+                    }}
+                    onClick={() => {
+                        addItem(itemName.toLowerCase());
+                        setItemName("");
+                    }}
+                    aria-autocomplete="none">
+                    Add Item
+                </Button>
             </Box>
         </Box>
     );
