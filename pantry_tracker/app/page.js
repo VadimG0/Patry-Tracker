@@ -6,6 +6,11 @@ import {
     Button,
     TextField,
     InputAdornment,
+    FormControl,
+    MenuItem,
+    FormHelperText,
+    Select,
+    InputLabel,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import { firestore } from "@/app/firebase";
@@ -20,29 +25,12 @@ import {
 } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
-const popupStyle = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: 400,
-    bgcolor: "background.paper",
-    border: "1px solid #EEE",
-    boxShadow: 24,
-    p: 4,
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
-    borderRadius: "15px",
-    color: "#EEE",
-    bgcolor: "#222",
-};
-
-const textFieldStyle = {};
-
 export default function Home() {
     const [pantry, setPantry] = useState([]);
     const [itemName, setItemName] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [sort, setSort] = useState("");
+    const [order, setOrder] = useState("");
 
     const updatePantry = async () => {
         try {
@@ -89,6 +77,35 @@ export default function Home() {
         await updatePantry();
     };
 
+    const handleSortChange = (event) => {
+        setSort(event.target.value);
+    };
+
+    const handleOrderChange = (event) => {
+        setOrder(event.target.value);
+    };
+
+    const sortPantry = (items) => {
+        const sortedItems = [...items];
+        if (sort === "Alphabet") {
+            sortedItems.sort((a, b) => a.name.localeCompare(b.name));
+        } else if (sort === "Quantity") {
+            sortedItems.sort((a, b) => a.quantity - b.quantity);
+        }
+
+        if (order === "Ascending") {
+            sortedItems.reverse();
+        }
+
+        return sortedItems.reverse();
+    };
+
+    const filteredPantry = sortPantry(
+        pantry.filter((item) =>
+            item.name.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    );
+
     return (
         <Box
             width="100vw"
@@ -118,9 +135,10 @@ export default function Home() {
                 <Box
                     display={"flex"}
                     alignItems={"center"}
-                    justifyContent={"center"}
+                    justifyContent={"space-between"}
+                    px={5}
                     bgcolor={"#EEE"}
-                    paddingTop={2}>
+                    py={2}>
                     <Box sx={{ display: "flex", alignItems: "center" }}>
                         <SearchIcon sx={{ color: "#222", mr: 1, my: 0.5 }} />
                         <TextField
@@ -128,7 +146,81 @@ export default function Home() {
                             variant="outlined"
                             size="small"
                             placeholder="Search"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            sx={{
+                                "& .MuiOutlinedInput-root": {
+                                    "&.Mui-focused": {
+                                        "& .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: "#222",
+                                        },
+                                    },
+                                    "&:hover:not(.Mui-focused)": {
+                                        "& .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: "#222",
+                                        },
+                                    },
+                                },
+                            }}
                         />
+                    </Box>
+                    <Box>
+                        <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+                            <InputLabel
+                                id="demo-simple-select-label"
+                                sx={{
+                                    "&.Mui-focused": {
+                                        color: "#222",
+                                    },
+                                }}>
+                                Sort
+                            </InputLabel>
+                            <Select
+                                labelId="demo-simple-select-label"
+                                id="demo-simple-select"
+                                value={sort}
+                                label="Sort"
+                                onChange={handleSortChange}
+                                sx={{
+                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                        {
+                                            borderColor: "#222",
+                                        },
+                                }}>
+                                <MenuItem value={"Alphabet"}>Alphabet</MenuItem>
+                                <MenuItem value={"Quantity"}>Quantity</MenuItem>
+                            </Select>
+                        </FormControl>
+                        <FormControl sx={{ m: 1, minWidth: 120 }} size="small">
+                            <InputLabel
+                                id="demo-simple-select-label"
+                                sx={{
+                                    "&.Mui-focused": {
+                                        color: "#222",
+                                    },
+                                }}>
+                                Order
+                            </InputLabel>
+                            <Select
+                                labelId="demo-simple-select-label"
+                                id="demo-simple-select"
+                                value={order}
+                                label="Order"
+                                onChange={handleOrderChange}
+                                sx={{
+                                    "&.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                        {
+                                            borderColor: "#222",
+                                        },
+                                }}>
+                                <MenuItem value={"Ascending"}>
+                                    Ascending
+                                </MenuItem>
+                                <MenuItem value={"Descending"}>
+                                    Descending
+                                </MenuItem>
+                            </Select>
+                        </FormControl>
                     </Box>
                 </Box>
                 <Stack
@@ -137,7 +229,7 @@ export default function Home() {
                     spacing={2}
                     overflow={"auto"}
                     bgcolor={"#EEE"}
-                    py={3}
+                    paddingBottom={3}
                     pl={3}
                     sx={{
                         "&::-webkit-scrollbar": {
@@ -154,7 +246,7 @@ export default function Home() {
                             backgroundClip: "content-box",
                         },
                     }}>
-                    {pantry.map(({ name, quantity }) => (
+                    {filteredPantry.map(({ name, quantity }) => (
                         <Box
                             key={name}
                             width="100%"
@@ -216,9 +308,22 @@ export default function Home() {
                             "& .MuiOutlinedInput-notchedOutline": {
                                 borderColor: "#EEE",
                             },
+                            "&.Mui-focused": {
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#AD974F",
+                                },
+                            },
+                            "&:hover:not(.Mui-focused)": {
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#AD974F",
+                                },
+                            },
                         },
                         "& .MuiInputLabel-outlined": {
                             color: "#EEE",
+                            "&.Mui-focused": {
+                                color: "#AD974F",
+                            },
                         },
                     }}
                     value={itemName}
@@ -239,7 +344,7 @@ export default function Home() {
                         addItem(itemName.toLowerCase());
                         setItemName("");
                     }}
-                    aria-autocomplete="none">
+                    autoComplete="off">
                     Add Item
                 </Button>
             </Box>
