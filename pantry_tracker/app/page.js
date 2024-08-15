@@ -5,14 +5,14 @@ import {
     Typography,
     Button,
     TextField,
-    InputAdornment,
     FormControl,
     MenuItem,
-    FormHelperText,
     Select,
     InputLabel,
+    IconButton,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { firestore } from "@/app/firebase";
 import {
     collection,
@@ -28,9 +28,14 @@ import { useEffect, useState } from "react";
 export default function Home() {
     const [pantry, setPantry] = useState([]);
     const [itemName, setItemName] = useState("");
+    const [addQuantity, setQuantity] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
     const [sort, setSort] = useState("");
     const [order, setOrder] = useState("");
+    const [quantityError, setQuantityError] = useState(false);
+    const [quantityErrorMessage, setQuantityErrorMessage] = useState("");
+    const [itemError, setItemError] = useState(false);
+    const [itemErrorMessage, setItemErrorMessage] = useState("");
 
     const updatePantry = async () => {
         try {
@@ -51,27 +56,42 @@ export default function Home() {
         updatePantry();
     }, []);
 
-    const addItem = async (item) => {
-        const docRef = doc(collection(firestore, "Pantry"), item);
+    const addItem = async (itemName, addQuantity) => {
+        if (isNaN(Number(addQuantity)) || Number(addQuantity) < 0) {
+            setQuantityError(true);
+            setQuantityErrorMessage("Invalid number");
+            return;
+        } else if (addQuantity.trim() === "") {
+            addQuantity = 1;
+        }
+        if (itemName.trim() === "") {
+            setItemError(true);
+            setItemErrorMessage("Required");
+            return;
+        }
+        let quantity = addQuantity.trim() === "" ? 1 : Number(addQuantity);
+        setQuantityErrorMessage(false);
+        setItemError(false);
+        const docRef = doc(collection(firestore, "Pantry"), itemName.trim());
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-            const { quantity } = docSnap.data();
-            await setDoc(docRef, { quantity: quantity + 1 });
+            const { quantity: currQuantity } = docSnap.data();
+            await setDoc(docRef, { quantity: currQuantity + quantity });
         } else {
-            await setDoc(docRef, { quantity: 1 });
+            await setDoc(docRef, { quantity: quantity });
         }
         await updatePantry();
     };
 
-    const removeItem = async (item) => {
+    const removeItem = async (item, amount = 0) => {
         const docRef = doc(collection(firestore, "Pantry"), item);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
             const { quantity } = docSnap.data();
-            if (quantity === 1) {
+            if (quantity <= amount || amount === 0) {
                 await deleteDoc(docRef);
             } else {
-                await setDoc(docRef, { quantity: quantity - 1 });
+                await setDoc(docRef, { quantity: quantity - amount });
             }
         }
         await updatePantry();
@@ -225,7 +245,7 @@ export default function Home() {
                 </Box>
                 <Stack
                     width="800px"
-                    height="400px"
+                    height="500px"
                     spacing={2}
                     overflow={"auto"}
                     bgcolor={"#EEE"}
@@ -247,55 +267,149 @@ export default function Home() {
                         },
                     }}>
                     {filteredPantry.map(({ name, quantity }) => (
-                        <Box
-                            key={name}
-                            width="100%"
-                            minHeight="120px"
-                            display={"flex"}
-                            justifyContent={"space-between"}
-                            alignItems={"center"}
-                            paddingX={7}
-                            bgcolor={"#222"}
-                            borderRadius={"15px"}>
-                            <Typography
-                                variant={"h5"}
-                                color={"#EEE"}
-                                textAlign={"center"}>
-                                {name.charAt(0).toUpperCase() + name.slice(1)}
-                            </Typography>
+                        <Box key={name} display={"flex"}>
                             <Box
+                                width="100%"
+                                minHeight="120px"
                                 display={"flex"}
-                                flexDirection={"column"}
+                                justifyContent={"space-between"}
                                 alignItems={"center"}
-                                gap={2}>
+                                pr={7}
+                                pl={3}
+                                bgcolor={"#222"}
+                                borderRadius={"15px"}>
+                                <Box
+                                    display={"flex"}
+                                    gap={5}
+                                    alignItems={"center"}>
+                                    <IconButton
+                                        aria-label="delete"
+                                        sx={{
+                                            color: "#EEE",
+                                            "&:hover": {
+                                                color: "#8c3d3c",
+                                                backgroundColor:
+                                                    "rgb(238, 238, 238, 0.05)",
+                                            },
+                                        }}
+                                        onClick={() => {
+                                            removeItem(name);
+                                        }}>
+                                        <DeleteIcon />
+                                    </IconButton>
+                                    <Typography
+                                        variant={"h5"}
+                                        color={"#EEE"}
+                                        textAlign={"center"}>
+                                        {name.charAt(0).toUpperCase() +
+                                            name.slice(1)}
+                                    </Typography>
+                                </Box>
+                                <Box
+                                    display={"flex"}
+                                    flexDirection={"column"}
+                                    alignItems={"center"}
+                                    gap={2}>
+                                    <Typography
+                                        variant={"h7"}
+                                        color={"#EEE"}
+                                        textAlign={"center"}>
+                                        Quantity: {quantity}
+                                    </Typography>
+                                </Box>
+                            </Box>
+                            <Box
+                                minHeight="120px"
+                                display={"flex"}
+                                justifyContent={"space-between"}
+                                alignItems={"center"}
+                                flexDirection={"column"}
+                                bgcolor={"#EEE"}>
                                 <Button
                                     variant="contained"
                                     sx={{
+                                        mb: "5px",
+                                        mx: "5px",
+                                        borderRadius: "15px",
                                         whiteSpace: "nowrap",
-                                        bgcolor: "#EEE",
-                                        color: "#222",
+                                        bgcolor: "#AD974F",
+                                        color: "#EEE",
                                         "&:hover": {
-                                            bgcolor: "#AD974F",
-                                            color: "#EEE",
+                                            bgcolor: "#EEE",
+                                            color: "#AD974F",
                                         },
                                     }}
                                     onClick={() => {
-                                        removeItem(name);
-                                    }}>
-                                    Remove
+                                        addItem(name, "5");
+                                    }}
+                                    autoComplete="off">
+                                    +5
                                 </Button>
-                                <Typography
-                                    variant={"h7"}
-                                    color={"#EEE"}
-                                    textAlign={"center"}>
-                                    Quantity: {quantity}
-                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    sx={{
+                                        mb: "5px",
+                                        mx: "5px",
+                                        borderRadius: "15px",
+                                        whiteSpace: "nowrap",
+                                        bgcolor: "#AD974F",
+                                        color: "#EEE",
+                                        "&:hover": {
+                                            bgcolor: "#EEE",
+                                            color: "#AD974F",
+                                        },
+                                    }}
+                                    onClick={() => {
+                                        addItem(name, "1");
+                                    }}
+                                    autoComplete="off">
+                                    +1
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    sx={{
+                                        mb: "5px",
+                                        mx: "5px",
+                                        borderRadius: "15px",
+                                        whiteSpace: "nowrap",
+                                        bgcolor: "#AD974F",
+                                        color: "#EEE",
+                                        "&:hover": {
+                                            bgcolor: "#EEE",
+                                            color: "#AD974F",
+                                        },
+                                    }}
+                                    onClick={() => {
+                                        removeItem(name, 1);
+                                    }}
+                                    autoComplete="off">
+                                    -1
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    sx={{
+                                        mx: "5px",
+                                        borderRadius: "15px",
+                                        whiteSpace: "nowrap",
+                                        bgcolor: "#AD974F",
+                                        color: "#EEE",
+                                        "&:hover": {
+                                            bgcolor: "#EEE",
+                                            color: "#AD974F",
+                                        },
+                                    }}
+                                    onClick={() => {
+                                        removeItem(name, 5);
+                                    }}
+                                    autoComplete="off">
+                                    -5
+                                </Button>
                             </Box>
                         </Box>
                     ))}
                 </Stack>
             </Box>
-            <Box display={"flex"} gap={3} width={"600px"}>
+            <Box display={"flex"} gap={3} width={"800px"} maxHeight={"40px"}>
                 <TextField
                     id="outline-basic"
                     label="Item"
@@ -328,10 +442,47 @@ export default function Home() {
                     }}
                     value={itemName}
                     onChange={(e) => setItemName(e.target.value)}
+                    error={itemError}
+                    helperText={itemError ? itemErrorMessage : ""}
+                />
+                <TextField
+                    id="outline-basic"
+                    label="Quantity"
+                    variant="outlined"
+                    size="small"
+                    sx={{
+                        "& .MuiOutlinedInput-root": {
+                            color: "#EEE",
+                            "& .MuiOutlinedInput-notchedOutline": {
+                                borderColor: "#EEE",
+                            },
+                            "&.Mui-focused": {
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#AD974F",
+                                },
+                            },
+                            "&:hover:not(.Mui-focused)": {
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#AD974F",
+                                },
+                            },
+                        },
+                        "& .MuiInputLabel-outlined": {
+                            color: "#EEE",
+                            "&.Mui-focused": {
+                                color: "#AD974F",
+                            },
+                        },
+                    }}
+                    value={addQuantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    error={quantityError}
+                    helperText={quantityError ? quantityErrorMessage : ""}
                 />
                 <Button
                     variant="contained"
                     sx={{
+                        paddingX: "24px",
                         whiteSpace: "nowrap",
                         bgcolor: "#AD974F",
                         color: "#EEE",
@@ -341,8 +492,9 @@ export default function Home() {
                         },
                     }}
                     onClick={() => {
-                        addItem(itemName.toLowerCase());
+                        addItem(itemName.toLowerCase(), addQuantity);
                         setItemName("");
+                        setQuantity("");
                     }}
                     autoComplete="off">
                     Add Item
