@@ -137,21 +137,27 @@ export default function Home() {
             gap={2}
             bgcolor={"#222"}>
             <Box
-                width="800px"
-                height="100px"
+                width="90%"
+                maxWidth={"800px"}
+                maxHeight="100px"
                 bgcolor={"#AD974F"}
                 display={"flex"}
                 justifyContent={"center"}
                 alignItems={"center"}
                 borderRadius={"15px"}>
-                <Typography variant={"h2"} color={"#EEE"} textAlign={"center"}>
+                <Typography
+                    color={"#EEE"}
+                    textAlign={"center"}
+                    fontSize={"6.5vh"}>
                     Pantry Items
                 </Typography>
             </Box>
             <Box
                 border={"1px solid #EEE"}
                 borderRadius={"15px"}
-                overflow={"hidden"}>
+                overflow={"hidden"}
+                width="90%"
+                maxWidth={"800px"}>
                 <Box
                     display={"flex"}
                     alignItems={"center"}
@@ -244,7 +250,6 @@ export default function Home() {
                     </Box>
                 </Box>
                 <Stack
-                    width="800px"
                     height="500px"
                     spacing={2}
                     overflow={"auto"}
@@ -267,7 +272,7 @@ export default function Home() {
                         },
                     }}>
                     {filteredPantry.map(({ name, quantity }) => (
-                        <Box key={name} display={"flex"}>
+                        <Box key={name} display={"flex"} width="100%">
                             <Box
                                 width="100%"
                                 minHeight="120px"
@@ -276,11 +281,12 @@ export default function Home() {
                                 alignItems={"center"}
                                 pr={7}
                                 pl={3}
+                                gap={2}
                                 bgcolor={"#222"}
                                 borderRadius={"15px"}>
                                 <Box
                                     display={"flex"}
-                                    gap={5}
+                                    gap={2}
                                     alignItems={"center"}>
                                     <IconButton
                                         aria-label="delete"
@@ -298,9 +304,11 @@ export default function Home() {
                                         <DeleteIcon />
                                     </IconButton>
                                     <Typography
-                                        variant={"h5"}
+                                        variant="h5"
+                                        fontSize={"2rem"}
                                         color={"#EEE"}
-                                        textAlign={"center"}>
+                                        textAlign={"center"}
+                                        whiteSpace={"nowrap"}>
                                         {name.charAt(0).toUpperCase() +
                                             name.slice(1)}
                                     </Typography>
@@ -312,6 +320,7 @@ export default function Home() {
                                     gap={2}>
                                     <Typography
                                         variant={"h7"}
+                                        fontSize={"0.875rem"}
                                         color={"#EEE"}
                                         textAlign={"center"}>
                                         Quantity: {quantity}
@@ -330,6 +339,7 @@ export default function Home() {
                                     sx={{
                                         mb: "5px",
                                         mx: "5px",
+                                        minWidth: "49px",
                                         borderRadius: "15px",
                                         whiteSpace: "nowrap",
                                         bgcolor: "#AD974F",
@@ -350,6 +360,7 @@ export default function Home() {
                                     sx={{
                                         mb: "5px",
                                         mx: "5px",
+                                        minWidth: "49px",
                                         borderRadius: "15px",
                                         whiteSpace: "nowrap",
                                         bgcolor: "#AD974F",
@@ -370,6 +381,7 @@ export default function Home() {
                                     sx={{
                                         mb: "5px",
                                         mx: "5px",
+                                        minWidth: "49px",
                                         borderRadius: "15px",
                                         whiteSpace: "nowrap",
                                         bgcolor: "#AD974F",
@@ -389,6 +401,7 @@ export default function Home() {
                                     variant="contained"
                                     sx={{
                                         mx: "5px",
+                                        minWidth: "49px",
                                         borderRadius: "15px",
                                         whiteSpace: "nowrap",
                                         bgcolor: "#AD974F",
@@ -409,7 +422,12 @@ export default function Home() {
                     ))}
                 </Stack>
             </Box>
-            <Box display={"flex"} gap={3} width={"800px"} maxHeight={"40px"}>
+            <Box
+                display={"flex"}
+                gap={3}
+                width={"90%"}
+                maxWidth={"800px"}
+                maxHeight={"40px"}>
                 <TextField
                     id="outline-basic"
                     label="Item"
